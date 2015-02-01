@@ -1,0 +1,47 @@
+package org.drools.examples.kredit;
+dialect  "mvel"
+
+global java.util.Set $auflagen;
+
+function double calculateZinsen(Kreditnehmer kn){
+    return 10 - kn.schufaRating/100;
+}
+
+rule "Kredite für Rentner, Pensionäre und Arbeitnehmer"
+	when
+	    $a: Antrag($betrag : betrag)
+		$kreditnehmer : Kreditnehmer(
+			antrag == $a,
+			beruf in (Berufsgruppe.RENTNER, Berufsgruppe.PENSIONAER, Berufsgruppe.ARBEITNEHMER),
+			schufaRating >= 90
+		)
+	then
+	    $kreditnehmer.bewilligterKredit = new Kredit($kreditnehmer, $betrag, calculateZinsen($kreditnehmer));
+		$auflagen.add("Aktueller Kontoumsatznachweis mit Gehalts-/Renteneingang in Kopie vom Kreditnehmer " + $kreditnehmer.name);
+end
+
+rule "Kredite für Rentner, Pensionäre und Arbeitnehmer 80%"
+	when
+	    $a: Antrag($betrag : betrag)
+		$kreditnehmer : Kreditnehmer(
+			antrag == $a,
+			beruf in (Berufsgruppe.RENTNER, Berufsgruppe.PENSIONAER, Berufsgruppe.ARBEITNEHMER),
+			schufaRating < 90 && >= 80
+		)
+	then
+	    $kreditnehmer.bewilligterKredit = new Kredit($kreditnehmer, $betrag*0.8, calculateZinsen($kreditnehmer));
+		$auflagen.add("Aktueller Kontoumsatznachweis mit Gehalts-/Renteneingang in Kopie vom Kreditnehmer " + $kreditnehmer.name);
+end
+
+rule "Kredite für Schüler und Studenten"
+	when
+	    $a: Antrag($betrag : betrag)
+		$kreditnehmer : Kreditnehmer(
+			antrag == $a,
+			beruf in (Berufsgruppe.SCHUELER, Berufsgruppe.STUDENT),
+			schufaRating >= 92
+		)
+	then
+	    $kreditnehmer.bewilligterKredit = new Kredit($kreditnehmer, $betrag, calculateZinsen($kreditnehmer));
+		$auflagen.add("Aktueller Kontoumsatznachweis mit Gehalts-/Renteneingang in Kopie vom Kreditnehmer " + $kreditnehmer.name);
+end

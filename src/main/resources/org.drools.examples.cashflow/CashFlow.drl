@@ -1,0 +1,20 @@
+package org.drools.examples.cashflow;
+dialect  "mvel"
+
+rule "Increase balance for AccountPeriod Credits"
+when
+   $ap : AccountPeriod($startPoint : startPoint, $endPoint : endPoint)
+   $acc : Account(accountNo != null, $accountNo : accountNo)
+   $cf : CashFlow( type == CashFlowType.CREDIT, accountNo == $accountNo, date >= $startPoint && <= $endPoint )
+then
+   $acc.balance = $acc.balance + $cf.amount;
+end
+
+rule "Decrease balance for AccountPeriod Debits"
+when
+   $ap : AccountPeriod($startPoint : startPoint, $endPoint : endPoint)
+   $acc : Account(accountNo != null, $accountNo : accountNo)
+   $cf : CashFlow( type == CashFlowType.DEBIT, accountNo == $accountNo, date >= $startPoint && <= $endPoint )
+then
+   $acc.balance = $acc.balance - $cf.amount;
+end
